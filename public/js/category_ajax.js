@@ -22,11 +22,12 @@ $(document).ready(function() {
             data: dataInput
         }).done(function(data) {
             let out = "";
-            out += "<h2>" + data.status + " Catagory not found</h2>";
+            out += "<h2>" + data.status + "</h2>";
             if (data.category) {
                 out += getCategory(data.category);
             }
             $('#out').html(out);
+            hide();
         })
     });
 
@@ -41,6 +42,7 @@ $(document).ready(function() {
             data: {name: $("#create_name").val(), parent: $("#create_parent").val(), isVisible: $("#create_visible").prop( 'checked' )}
         }).done(function(data) {
             $('#out').html("<h2>" + data.status + "</h2>");
+            hide();
         })
     });
 
@@ -51,18 +53,43 @@ $(document).ready(function() {
         $.ajax({
             method: 'POST',
             url: url,
-            data: {name: $("#tree_name").val()}
+            data: {id: $("#tree_id").val()}
         }).done(function(data) {
             let out = "";
             out += "<h2>" + data.status + "</h2>";
-            for (let index = 0; index < data.list.length; index++) {
-                var category = data.list[index];
+            for (let index = 0; index < data.children.length; index++) {
+                var category = data.children[index];
                 out += getCategory(category);
             }
             $('#out').html(out);
+            hide();
         })
     });
 
+    //----------- HIDE ---------------------------------------------------------
+    function hide() {  
+        $('.category_hide').on('click', function(e) {
+            e.preventDefault();
+            let $id = $(this).attr("href");
+            let url = '/hide';
+            $.ajax({
+                method: 'POST',
+                url: url,
+                data: {id: $id}
+    
+        }).done(function(data) {
+                let out = "";
+                out += "<h2>" + data.status + "</h2>";
+                if (data.category) {
+                    out += getCategory(data.category);
+                }
+                $('#out').html(out);
+                hide();
+            })
+        });
+    }
+
+    //-----------------------------------------------------------------------------
     function getCategory(category) {
         let out = "<ul>";
         out += "<li>Id: " + category.id + "</li>";
@@ -70,7 +97,7 @@ $(document).ready(function() {
         out += "<li>Slug: " + category.slug + "</li>";
         out += "<li>Parent: " + category.parent + "</li>";
         let visible = (category.isVisible) ? "true" : "false";
-        out += "<li>Visible: " + "<a href='/hide/" + category.id + "' title='Hide'>" + visible + "</a>" + "</li>";
+        out += "<li>Visible: " + "<a class='category_hide' href='" + category.id + "' title='Hide'>" + visible + "</a>" + "</li>";
         out += "</ul>";
         return out;
     }

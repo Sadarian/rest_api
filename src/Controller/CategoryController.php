@@ -25,7 +25,7 @@ class CategoryController extends AbstractController{
         }
 
         if(empty($name)){
-            return $this->json(['status' => "error"]);
+            return $this->json(['status' => "Error"]);
         }
 
         $slug = str_replace(" ", "-", $name);
@@ -46,7 +46,7 @@ class CategoryController extends AbstractController{
         // actually executes the queries (i.e. the INSERT query)
         $entityManager->flush();
         
-        return $this->json(['status' => "sucsess"]);
+        return $this->json(['status' => "Success"]);
     }
 
     /**
@@ -67,15 +67,15 @@ class CategoryController extends AbstractController{
             $categoryData = $category->find($id);
         }
         if (!empty($slug)) {
-            $categoryData = $category->findBy(["slug" => strtolower($slug)]);
-            $categoryData = (!empty($categoryData)) ? $categoryData[0] : Null; 
+            $categoryData = $category->findOneBy(["slug" => strtolower($slug)]);
+            // $categoryData = (!empty($categoryData)) ? $categoryData[0] : Null;
         }
 
         $out = [];
-        $out['status'] = 'Error';
+        $out['status'] = 'Nothing Found';
         
         if ($categoryData) {
-            $out['status'] = 'Sucess';
+            $out['status'] = 'Success';
             $out['category']['id'] = $categoryData->getId();
             $out['category']['name'] = $categoryData->getName();
             $out['category']['slug'] = $categoryData->getSlug();
@@ -92,40 +92,55 @@ class CategoryController extends AbstractController{
     public function categoryTree(){
         $request = Request::createFromGlobals();
 
-        $name = $request->request->get('name');
+        $id = $request->request->get('id');
 
-        $category = $this->getDoctrine()
+        $categories = $this->getDoctrine()
         ->getRepository(\App\Entity\Category::class)
-        ->find($name);
-
-        if (!$category) {
-            throw $this->createNotFoundException(
-                'No categoru found for name '.$name
-            );
-        }
-        var_dump($category);
+        ->findBy(["parent" => $id]);
 
         $out = [];
-        $out['status'] = 'Sucess';
-        $out['title'] = 'show category';
-        $out['list'] = [];
+        $out['status'] = 'Nothing Found';
+        $out['children'] = [];
         
-        for ($i=0; $i < 10; $i++) { 
-            $out['list'][$i]['id'] = $i;
-            $out['list'][$i]['name'] = $i . " name";
-            $out['list'][$i]['slug'] = $i . " slug";
-            $out['list'][$i]['parent'] = $i . " parent";
-            $out['list'][$i]['visible'] = true;
+        foreach ($categories as $categoryData) {
+            $category = array(
+                'id' => $categoryData->getId(),
+                'name'=> $categoryData->getName(),
+                'slug' => $categoryData->getSlug(),
+                'parent' => $categoryData->getParent(),
+                'isVisible' => $categoryData->getIsVisible()
+            );
+
+            $out['children'][] = $category;
         }
-   
+        if (!empty($out['children'])) {
+            $out['status'] = 'Success';
+        }
         return $this->json($out);
     }
 
     /**
-     * @Route("/hide", name="category_hide", methods={"PATCH"})
+     * @Route("/hide", name="category_hide")
      */
     public function hideCategory(){
+        $request = Request::createFromGlobals();
 
-        return $this->json(['hearts' => rand(5, 100)]);
+        $id = $request->request->get('id');
+
+        $category = $this->getDoctrine()->getManager()->getRepository(\App\Entity\Category::class)->find($id); 
+        $category->setIsVisible(!$category->getIsVisible()); 
+        
+        $this->getDoctrine()->getManager()->persist($category);
+        $this->getDoctrine()->getManager()->flush();
+
+        $out = [];
+        $out['status'] = 'Success';
+        $out['category']['id'] = $category->getId();
+        $out['category']['name'] = $category->getName();
+        $out['category']['slug'] = $category->getSlug();
+        $out['category']['parent'] = $category->getParent();
+        $out['category']['isVisible'] = $category->getIsVisible();
+
+        return $this->json($out);
     }
 }
