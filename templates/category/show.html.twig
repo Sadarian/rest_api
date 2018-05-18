@@ -1,0 +1,57 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block body %}
+<h1>Categories</h1>
+
+<p>Status: {{ status }}</p>
+
+<form method="POST" action="" id="category_get" style="border:solid 1px black; padding:3px; display:inline-block">
+    <legend>Search for Category:</legend>
+    <div>
+        <label for="get_id">Category id</label>
+        <input type="text" name="get_id" id="get_id" autocomplete="off" value="">
+    </div>
+    <div>
+        <label for="get_slug">Category slug</label>
+        <input type="text" name="get_slug" id="get_slug" autocomplete="off" value="">
+    </div>
+    <input type="submit">
+</form>
+
+<form method="POST" action="" id="category_create" style="border:solid 1px black; padding:3px; display:inline-block">
+    <legend>Create Category:</legend>
+    <div>
+        <label for="create_name">Category name</label>
+        <input type="text" name="create_name" id="create_name" autocomplete="off" value="">
+    </div>
+    <div>
+        <label for="create_parent">Category parent</label>
+        <input type="text" name="create_parent" id="create_parent" autocomplete="off" value="">
+    </div>
+    </div>
+    <div>
+        <label for="create_visible">Category visible</label>
+        <input type="checkbox" name="create_visible" id="create_visible" autocomplete="off" value="">
+    </div>
+    <input type="submit">
+</form>
+
+<form method="POST" action="" id="category_tree" style="border:solid 1px black; padding:3px; display:inline-block">
+    <legend>Tree:</legend>
+    <div>
+        <label for="tree_name">Category name</label>
+        <input type="text" name="tree_name" id="tree_name" autocomplete="off" value="">
+    </div>
+    <input type="submit">
+</form>
+
+<div id="out"></div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    
+    <script src="{{ asset('js/category_ajax.js') }}"></script>   
+{% endblock %}
